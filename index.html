@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mapa de Revistas de Trabajo Social</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout (como la referencia): barra superior; países a la izquierda, mapa al centro, detalle a la derecha.
+   Diseño de un solo tema claro, a juego con el mapa de corresponsabilidad. */
+:root {
+  --bg: #faf8f4;
+  --surface: #ffffff;
+  --field: #f4f1ea;
+  --ink: #2b2622;
+  --muted: #7a716a;
+  --line: #e9e3d8;
+  --sea: #f7f5f0;
+  --land: #e8e5de;
+  --land-line: #ffffff;
+  --accent: #c1583c;          /* terracota del botón de la referencia */
+  --accent-soft: #f6e4dc;
+  --f-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 14.5px/1.45 var(--f-body); }
+
+.app { display: grid; grid-template-rows: auto 1fr; height: 100%; min-height: 640px; }
+.top {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px;
+  padding: 10px 20px; background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.brand { margin-right: 14px; }
+.eyebrow { font: 600 11px/1 var(--f-body); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 4px; }
+h1 { font: 700 21px/1.15 var(--f-display); margin: 0; text-wrap: balance; }
+.search { position: relative; flex: 0 1 340px; min-width: 0; }
+.search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; stroke: var(--muted); }
+.search input {
+  width: 100%; height: 36px; padding: 0 12px 0 33px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--field); color: var(--ink); font: 400 14px var(--f-body);
+}
+.count { font-size: 13px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.count b { color: var(--ink); }
+.seg { display: inline-flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.seg button {
+  height: 36px; padding: 0 14px; border-radius: 7px; cursor: pointer; white-space: nowrap;
+  font: 700 13.5px var(--f-body); border: 1.5px solid var(--accent); background: var(--surface); color: var(--accent);
+}
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.seg .n { font-weight: 600; opacity: .85; margin-left: 4px; font-variant-numeric: tabular-nums; }
+button:focus-visible, input:focus-visible, a:focus-visible, .pin:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.body { display: grid; grid-template-columns: 250px minmax(0, 1fr) 320px; min-height: 0; }
+.side { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.side-h { display: flex; justify-content: space-between; align-items: center; padding: 16px 16px 8px; }
+.label { font: 700 11.5px/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.link { font: 600 12.5px var(--f-body); color: var(--accent); background: none; border: 0; cursor: pointer; padding: 0; }
+.plist { list-style: none; margin: 0; padding: 0 8px 12px; overflow-y: auto; }
+.plist button {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px; border: 0; border-radius: 7px;
+  background: none; color: var(--ink); font: 400 14.5px var(--f-body); cursor: pointer; text-align: left;
+}
+.plist button:hover { background: var(--field); }
+.plist button[aria-pressed="true"] { background: var(--accent-soft); }
+.plist .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.plist .nm { flex: 1; min-width: 0; }
+.plist .b { font-size: 12px; color: var(--muted); background: var(--field); border-radius: 999px; padding: 2px 8px; font-variant-numeric: tabular-nums; }
+.note { margin: auto 16px 16px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; color: var(--muted); }
+
+.mapbox { position: relative; background: var(--sea); overflow: hidden; min-height: 420px; }
+#map { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#map:active { cursor: grabbing; }
+.country { fill: var(--land); stroke: var(--land-line); stroke-width: .7; vector-effect: non-scaling-stroke; }
+.country.has { stroke: #fff; stroke-width: 1.6; cursor: pointer; filter: url(#lift); }
+.country.has.dim { opacity: .45; }
+.clabel { font: 600 11.5px var(--f-display); fill: var(--ink); text-anchor: middle; paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-linejoin: round; pointer-events: none; letter-spacing: .03em; }
+.pin { cursor: pointer; }
+.pin circle { stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.pin.sel circle { stroke: var(--ink) !important; stroke-width: 2.4; }
+.pin text { font: 700 11px var(--f-body); fill: var(--ink); text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+.zoom { position: absolute; left: 12px; top: 12px; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.zoom button { width: 32px; height: 32px; border: 0; background: var(--surface); color: var(--ink); font: 600 18px/1 var(--f-body); cursor: pointer; }
+.zoom button + button { border-top: 1px solid var(--line); }
+.legend { position: absolute; left: 16px; bottom: 16px; max-width: 320px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font-size: 12.5px; color: var(--muted); }
+.tip {
+  position: absolute; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line);
+  box-shadow: 0 6px 18px rgba(43,38,34,.12); padding: 8px 11px; border-radius: 8px; font-size: 13px; max-width: 270px; line-height: 1.35;
+  transform: translate(-50%, calc(-100% - 14px)); opacity: 0; transition: opacity .12s;
+}
+.tip b { display: block; font-family: var(--f-display); margin-bottom: 3px; }
+
+.loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; pointer-events: none; }
+.detail { background: var(--surface); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.detail-h { padding: 18px 18px 12px; border-bottom: 1px solid var(--line); }
+.detail-h h2 { font: 700 20px/1.2 var(--f-display); margin: 6px 0 4px; text-wrap: balance; }
+.detail-h p { margin: 0; color: var(--muted); font-size: 13.5px; }
+.list { overflow-y: auto; padding: 4px 18px 18px; flex: 1; }
+.group h3 { font: 700 11.5px/1 var(--f-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 16px 0 4px; display: flex; align-items: center; gap: 8px; }
+.group h3 .dot { width: 9px; height: 9px; border-radius: 50%; }
+.item { padding: 10px 0; border-top: 1px solid var(--line); display: grid; gap: 2px; }
+.group h3 + .item { border-top: 0; }
+.item .t { font: 600 15px/1.3 var(--f-display); color: var(--ink); text-decoration: none; }
+.item a.t:hover { color: var(--accent); text-decoration: underline; }
+.item .i { color: var(--muted); font-size: 13px; }
+.item .c { font: 600 12.5px var(--f-body); color: var(--accent); cursor: pointer; background: none; border: 0; padding: 0; text-align: left; justify-self: start; }
+.empty { color: var(--muted); padding: 28px 0; text-align: center; }
+
+@media (max-width: 1000px) {
+  .body { grid-template-columns: 210px minmax(0, 1fr); }
+  .detail { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); max-height: 460px; }
+}
+@media (max-width: 680px) {
+  .app { height: auto; }
+  .top { padding: 10px 16px; }
+  .seg { margin-left: 0; }
+  .body { grid-template-columns: 1fr; }
+  .side { display: none; }
+  .mapbox { height: 56vh; min-height: 340px; }
+  .detail { max-height: none; }
+  .list { overflow: visible; }
+  .legend { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .tip { transition: none; } }
+</style>
+</head>
+<body>
+
+
+<div class="app">
+  <div class="top">
+    <div class="brand">
+      <p class="eyebrow">ALAEITS · Feria de revistas</p>
+      <h1>Revistas Latinoamericanas de Trabajo Social</h1>
+    </div>
+    <label class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Buscar revista, institución o ciudad…" aria-label="Buscar revista, institución o ciudad">
+    </label>
+    <span class="count" id="count"></span>
+    <div class="seg" role="group" aria-label="Conjunto de revistas">
+      <button data-set="inscritos" aria-pressed="true">Inscritas<span class="n"></span></button>
+      <button data-set="asistentes" aria-pressed="false">Asistentes a la feria<span class="n"></span></button>
+    </div>
+  </div>
+
+  <div class="body">
+    <aside class="side">
+      <div class="side-h"><p class="label" id="plabel">Países</p><button class="link" id="all">Ver todos</button></div>
+      <ul class="plist" id="plist"></ul>
+      <p class="note">Tamaño del círculo = cantidad de revistas en la ciudad · color = país. Clic en un país o ciudad para ver sus revistas.</p>
+    </aside>
+
+    <div class="mapbox">
+      <svg id="map" role="img" aria-label="Mapa de las revistas por ciudad"></svg>
+      <div class="loading" id="loading">Cargando mapa…</div>
+      <div class="zoom">
+        <button id="zin" aria-label="Acercar">+</button>
+        <button id="zout" aria-label="Alejar">−</button>
+      </div>
+      <div class="tip" id="tip"></div>
+    </div>
+
+    <section class="detail">
+      <div class="detail-h">
+        <p class="label" id="dlabel">Selecciona una región</p>
+        <h2 id="dtitle">Panorama general</h2>
+        <p id="dsub"></p>
+      </div>
+      <div class="list" id="list"></div>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script>
+// ===== DATOS =====
+// Para agregar una revista, copia una línea { ... } dentro de "inscritos" o "asistentes" y cambia sus valores.
+// lat / lng = coordenadas de la ciudad (en Google Maps: clic derecho sobre la ciudad).
+const DATA = {
+ "inscritos": [
+  {"pais": "Argentina", "ciudad": "Córdoba", "lat": -31.4201, "lng": -64.1888, "revista": "Revista Conciencia Social", "institucion": "Universidad Nacional de Córdoba", "web": "https://revistas.unc.edu.ar/index.php/ConCienciaSocial/index"},
+  {"pais": "Argentina", "ciudad": "Provincia de Buenos Aires", "lat": -34.6037, "lng": -58.3816, "revista": "Plaza Pública. Revista de Trabajo Social", "institucion": "Universidad Nacional del Centro de la Provincia de Buenos Aires", "web": "https://ojs2.fch.unicen.edu.ar/ojs-3.1.0/index.php/plaza-publica/issue/archive"},
+  {"pais": "Argentina", "ciudad": "La Plata", "lat": -34.9214, "lng": -57.9545, "revista": "Escenarios. Revista de Trabajo Social y Ciencias Sociales", "institucion": "Universidad Nacional de La Plata", "web": "https://revistas.unlp.edu.ar/escenarios/index"},
+  {"pais": "Argentina", "ciudad": "Rosario", "lat": -32.9442, "lng": -60.6505, "revista": "Cátedra Paralela", "institucion": "Universidad Nacional de Rosario", "web": "https://catedraparalela.unr.edu.ar/index.php/revista"},
+  {"pais": "Brasil", "ciudad": "Vitória, Espírito Santo", "lat": -20.3155, "lng": -40.3128, "revista": "Argumentum", "institucion": "Universidade Federal do Espírito Santo", "web": "https://periodicos.ufes.br/argumentum/"},
+  {"pais": "Brasil", "ciudad": "Cuiabá, Mato Grosso", "lat": -15.6014, "lng": -56.0979, "revista": "Revista Direitos, Trabalho e Política Social", "institucion": "Universidade Federal de Mato Grosso (UFMT)", "web": "https://periodicoscientificos.ufmt.br/ojs/index.php/rdtps/issue/view/881"},
+  {"pais": "Brasil", "ciudad": "São Paulo", "lat": -23.5505, "lng": -46.6333, "revista": "Serviço Social e Sociedade", "institucion": "Cortez Editora Ltda", "web": "https://www.scielo.br/j/sssoc/"},
+  {"pais": "Brasil", "ciudad": "Montes Claros, Minas Gerais", "lat": -16.735, "lng": -43.8617, "revista": "Revista Serviço Social em Perspectiva - Revista do Curso de Serviço Social", "institucion": "Universidad Estatal de Montes Claros", "web": "https://www.periodicos.unimontes.br/index.php/sesoperspectiva/index"},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Praia Vermelha", "institucion": "Universidad Federal de Río de Janeiro", "web": "https://praiavermelha.ess.ufrj.br/"},
+  {"pais": "Brasil", "ciudad": "Brasília", "lat": -15.7939, "lng": -47.8828, "revista": "Revista SER Social", "institucion": "Universidade de Brasília", "web": "https://periodicos.unb.br/index.php/SER_Social"},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Temporalis", "institucion": "ASSOCIAÇÃO BRASILEIRA DE ENSINO E PESQUISA EM SERVIÇO SOCIAL - ABEPSS, BRASIL.", "web": "https://periodicos.ufes.br/temporalis"},
+  {"pais": "Brasil", "ciudad": "Juiz de Fora, Minas Gerais", "lat": -21.7642, "lng": -43.3496, "revista": "Revista Libertas", "institucion": "Universidade Federal de Juiz de Fora", "web": "https://periodicos.ufjf.br/index.php/libertas/index"},
+  {"pais": "Brasil", "ciudad": "São Paulo", "lat": -23.5505, "lng": -46.6333, "revista": "Serviço Social & Realidade", "institucion": "UNESP (Universidade Estadual Paulista “Júlio de Mesquita Filho”)", "web": "https://ojs.franca.unesp.br/index.php/SSR"},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Em Pauta: teoria social e realidade contemporânea", "institucion": "Universidade do Estado do Rio de Janeiro", "web": "https://www.e-publicacoes.uerj.br/revistaempauta/index"},
+  {"pais": "Brasil", "ciudad": "Florianópolis, Santa Catarina", "lat": -27.5954, "lng": -48.548, "revista": "Revista Katálysis", "institucion": "Universidade Federal de Santa Catarina", "web": "https://periodicos.ufsc.br/index.php/katalysis/index"},
+  {"pais": "Brasil", "ciudad": "Fortaleza, Ceará", "lat": -3.7319, "lng": -38.5267, "revista": "CARTILLA: Trabalho Social com famílias negras, povos originários e comunidades tradicionais no Ceará.", "institucion": "Comitê de Combate ao Racismo do Conselho Regional de Serviço Social - 3ª Região", "web": "https://drive.google.com/file/d/1ap1paz1DB5WvM31OvcYmpJ1y-RG-oshU/view"},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista O Social em Questão", "institucion": "Programa de Pós-graduação em Serviço Social do Departamento de Serviço Social da Pontifícia Universidade Católica do Rio de Janeiro (PUC-Rio)", "web": "https://www.maxwell.vrac.puc-rio.br/rev_OSQ.php"},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista Intervención", "institucion": "Universidad Alberto Hurtado", "web": "https://intervencion.uahurtado.cl/index.php/intervencion/about"},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista de Trabajo Social", "institucion": "Pontificia Universidad Católica de Chile", "web": "https://revistatrabajosocial.uc.cl/"},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista Propuestas Críticas en Trabajo Social", "institucion": "Universidad de Chile", "web": "https://revistapropuestascriticas.uchile.cl/"},
+  {"pais": "Chile", "ciudad": "Talca", "lat": -35.4264, "lng": -71.6554, "revista": "Revista Pensamiento y Acción Interdisciplinaria", "institucion": "Universidad Católica del Maule", "web": "https://revistapai.ucm.cl/"},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Complejidades Latinoamericanas", "institucion": "Corporación de Estudios Avanzados en Trabajo Social (CEATSO)", "web": "https://ceatso.com/revista_complejidades_latinoamericanas/"},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Campos Problemáticos en el Trabajo Social Latinoamericano", "institucion": "Corporación de Estudios Avanzados en Trabajo Social (CEATSO)", "web": "https://ceatso.com/revista-electronica-campos-problematicos-en-el-trabajo-social-latinoamericano/"},
+  {"pais": "Chile", "ciudad": "Concepción", "lat": -36.827, "lng": -73.0503, "revista": "Revista Electrónica de Trabajo Social", "institucion": "Universidad de Concepción", "web": "https://trabajosocial.udec.cl/revista/numero-actual/"},
+  {"pais": "Colombia", "ciudad": "Manizales, Caldas", "lat": 5.0703, "lng": -75.5138, "revista": "Revista Eleuthera", "institucion": "Universidad de Caldas", "web": "https://revistasojs.ucaldas.edu.co/index.php/eleuthera/index"},
+  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Trabajo Social", "institucion": "Universidad Nacional de Colombia", "web": "https://revistas.unal.edu.co/index.php/tsocial"},
+  {"pais": "Colombia", "ciudad": "Santiago de Cali, Valle del Cauca", "lat": 3.4516, "lng": -76.532, "revista": "Prospectiva. Revista de Trabajo Social e intervención social", "institucion": "Universidad del Valle", "web": "https://revistaprospectiva.univalle.edu.co/index.php/prospectiva/index"},
+  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Colombiana de Trabajo Social", "institucion": "CONETS", "web": "https://conetsco.org/"},
+  {"pais": "Colombia", "ciudad": "Medellín, Antioquia", "lat": 6.2442, "lng": -75.5812, "revista": "Revista de Trabajo Social", "institucion": "Universidad de Antioquia", "web": "https://revistas.udea.edu.co/index.php/revistraso"},
+  {"pais": "Colombia", "ciudad": "Medellín, Antioquia", "lat": 6.2442, "lng": -75.5812, "revista": "Revista de la Facultad de Trabajo Social UPB", "institucion": "Universidad Pontificia Bolivariana", "web": "https://revistas.upb.edu.co/index.php/trabajosocial"},
+  {"pais": "Ecuador", "ciudad": "Manta, Manabí", "lat": -0.9677, "lng": -80.7089, "revista": "Revista Científica y Arbitrada de Ciencias Sociales y Trabajo Social: Tejedora", "institucion": "Universidad Laica Eloy Alfaro De Manabi", "web": "https://publicacionescd.uleam.edu.ec/index.php/tejedora/"},
+  {"pais": "España", "ciudad": "Murcia", "lat": 37.9922, "lng": -1.1307, "revista": "AZARBE Revista Internacional de Trabajo Social y Bienestar", "institucion": "Universidad de Murcia", "web": "https://revistas.um.es/azarbe"},
+  {"pais": "Perú", "ciudad": "Huancayo, Junín", "lat": -12.0651, "lng": -75.2049, "revista": "Reflexiones de Trabajo Social", "institucion": "Universidad Nacional del Centro del Perú", "web": "https://revistas.uncp.edu.pe/index.php/reflexiones/about/contact"},
+  {"pais": "Uruguay", "ciudad": "Montevideo", "lat": -34.9011, "lng": -56.1645, "revista": "Revista Fronteras", "institucion": "Universidad de la República, Uruguay", "web": "https://revistasfcs.edu.uy/index.php/ftas/about"}
+ ],
+ "asistentes": [
+  {"pais": "Argentina", "ciudad": "Córdoba", "lat": -31.4201, "lng": -64.1888, "revista": "Revista Conciencia Social", "institucion": "Universidad Nacional de Córdoba", "web": "https://revistas.unc.edu.ar/index.php/ConCienciaSocial/index"},
+  {"pais": "Brasil", "ciudad": "Vitória, Espírito Santo", "lat": -20.3155, "lng": -40.3128, "revista": "Argumentum", "institucion": "Universidade Federal do Espírito Santo", "web": "https://periodicos.ufes.br/argumentum/"},
+  {"pais": "Brasil", "ciudad": "São Paulo", "lat": -23.5505, "lng": -46.6333, "revista": "Serviço Social e Sociedade", "institucion": "Cortez Editora Ltda", "web": "https://www.scielo.br/j/sssoc/"},
+  {"pais": "Brasil", "ciudad": "Montes Claros, Minas Gerais", "lat": -16.735, "lng": -43.8617, "revista": "Revista Serviço Social em Perspectiva - Revista do Curso de Serviço Social", "institucion": "Universidad Estatal de Montes Claros", "web": "https://www.periodicos.unimontes.br/index.php/sesoperspectiva/index"},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Praia Vermelha", "institucion": "Universidad Federal de Río de Janeiro", "web": "https://praiavermelha.ess.ufrj.br/"},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Temporalis", "institucion": "ASSOCIAÇÃO BRASILEIRA DE ENSINO E PESQUISA EM SERVIÇO SOCIAL - ABEPSS, BRASIL.", "web": "https://periodicos.ufes.br/temporalis"},
+  {"pais": "Brasil", "ciudad": "Juiz de Fora, Minas Gerais", "lat": -21.7642, "lng": -43.3496, "revista": "Revista Libertas", "institucion": "Universidade Federal de Juiz de Fora", "web": "https://periodicos.ufjf.br/index.php/libertas/index"},
+  {"pais": "Brasil", "ciudad": "Florianópolis, Santa Catarina", "lat": -27.5954, "lng": -48.548, "revista": "Revista Katálysis", "institucion": "Universidade Federal de Santa Catarina", "web": "https://periodicos.ufsc.br/index.php/katalysis/index"},
+  {"pais": "Brasil", "ciudad": "Fortaleza, Ceará", "lat": -3.7319, "lng": -38.5267, "revista": "CARTILLA: Trabalho Social com famílias negras, povos originários e comunidades tradicionais no Ceará.", "institucion": "Comitê de Combate ao Racismo do Conselho Regional de Serviço Social - 3ª Região", "web": "https://drive.google.com/file/d/1ap1paz1DB5WvM31OvcYmpJ1y-RG-oshU/view"},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista O Social em Questão", "institucion": "Programa de Pós-graduação em Serviço Social do Departamento de Serviço Social da Pontifícia Universidade Católica do Rio de Janeiro (PUC-Rio)", "web": "https://www.maxwell.vrac.puc-rio.br/rev_OSQ.php"},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista Propuestas Críticas en Trabajo Social", "institucion": "Universidad de Chile", "web": "https://revistapropuestascriticas.uchile.cl/"},
+  {"pais": "Chile", "ciudad": "Talca", "lat": -35.4264, "lng": -71.6554, "revista": "Revista Pensamiento y Acción Interdisciplinaria", "institucion": "Universidad Católica del Maule", "web": "https://revistapai.ucm.cl/"},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Rumbos TS", "institucion": "Universidad Central, Chile", "web": "https://revistafacso.ucentral.cl/index.php/rumbos"},
+  {"pais": "Colombia", "ciudad": "Manizales, Caldas", "lat": 5.0703, "lng": -75.5138, "revista": "Revista Eleuthera", "institucion": "Universidad de Caldas", "web": "https://revistasojs.ucaldas.edu.co/index.php/eleuthera/index"},
+  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Trabajo Social", "institucion": "Universidad Nacional de Colombia", "web": "https://revistas.unal.edu.co/index.php/tsocial"},
+  {"pais": "Colombia", "ciudad": "Santiago de Cali, Valle del Cauca", "lat": 3.4516, "lng": -76.532, "revista": "Prospectiva. Revista de Trabajo Social e intervención social", "institucion": "Universidad del Valle", "web": "https://revistaprospectiva.univalle.edu.co/index.php/prospectiva/index"},
+  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Colombiana de Trabajo Social", "institucion": "CONETS", "web": "https://conetsco.org/"},
+  {"pais": "Colombia", "ciudad": "Medellín, Antioquia", "lat": 6.2442, "lng": -75.5812, "revista": "Revista de Trabajo Social", "institucion": "Universidad de Antioquia", "web": "https://revistas.udea.edu.co/index.php/revistraso"},
+  {"pais": "Ecuador", "ciudad": "Manta, Manabí", "lat": -0.9677, "lng": -80.7089, "revista": "Revista Científica y Arbitrada de Ciencias Sociales y Trabajo Social: Tejedora", "institucion": "Universidad Laica Eloy Alfaro De Manabi", "web": "https://publicacionescd.uleam.edu.ec/index.php/tejedora/"},
+  {"pais": "Uruguay", "ciudad": "Montevideo", "lat": -34.9011, "lng": -56.1645, "revista": "Revista Fronteras", "institucion": "Universidad de la República, Uruguay", "web": "https://revistasfcs.edu.uy/index.php/ftas/about"}
+ ]
+};
+// Mapa base (fronteras) desde world-atlas
+fetch("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json").then(r => r.json()).then(WORLD => {
+document.getElementById("loading").remove();
+
+const EN = { "Argentina":"Argentina", "Brasil":"Brazil", "Chile":"Chile", "Colombia":"Colombia",
+  "Ecuador":"Ecuador", "España":"Spain", "Perú":"Peru", "Uruguay":"Uruguay", "México":"Mexico",
+  "Venezuela":"Venezuela", "Bolivia":"Bolivia", "Paraguay":"Paraguay", "Costa Rica":"Costa Rica",
+  "Cuba":"Cuba", "Puerto Rico":"Puerto Rico", "Portugal":"Portugal", "Guatemala":"Guatemala" };
+const ES = Object.fromEntries(Object.entries(EN).map(([a, b]) => [b, a]));
+
+// Paleta pastel de la referencia: [relleno, borde]
+const PALETTE = [
+  ["#e7ad97", "#c98068"], ["#a6d2c5", "#6fab99"], ["#f2d38d", "#d3ac53"], ["#cbb6e0", "#9c82bd"],
+  ["#a9cbe8", "#6f9fc9"], ["#e9b6c6", "#c27d94"], ["#cfd59e", "#a1a865"], ["#dcc2a6", "#b49372"],
+];
+const ALL_PAISES = [...new Set([...DATA.inscritos, ...DATA.asistentes].map(r => r.pais))].sort((a, b) => a.localeCompare(b, "es"));
+const COLOR = Object.fromEntries(ALL_PAISES.map((p, i) => [p, PALETTE[i % PALETTE.length]]));
+
+const state = { set: "inscritos", pais: null, ciudad: null, q: "" };
+
+const svg = d3.select("#map");
+svg.append("defs").html('<filter id="lift" x="-10%" y="-10%" width="120%" height="120%"><feDropShadow dx="0" dy="1.2" stdDeviation="1.6" flood-color="#2b2622" flood-opacity=".22"/></filter>');
+const gRoot = svg.append("g");
+const gLand = gRoot.append("g");
+const gLabels = gRoot.append("g");
+const gPins = gRoot.append("g");
+const tip = document.getElementById("tip");
+const countries = topojson.feature(WORLD, WORLD.objects.countries).features.filter(f => f.properties.name !== "Antarctica");
+const projection = d3.geoNaturalEarth1();
+const path = d3.geoPath(projection);
+let k = 1;
+
+const zoom = d3.zoom().scaleExtent([1, 40]).on("zoom", ev => {
+  k = ev.transform.k;
+  gRoot.attr("transform", ev.transform);
+  gPins.selectAll(".pin").attr("transform", d => `translate(${d.x},${d.y}) scale(${1 / k})`);
+  gLabels.selectAll("text").attr("transform", d => `translate(${d.x},${d.y}) scale(${1 / k})`);
+  hideTip();
+});
+svg.call(zoom).on("dblclick.zoom", null);
+
+const size = () => { const r = svg.node().getBoundingClientRect(); return [Math.max(r.width, 300), Math.max(r.height, 300)]; };
+const rows = () => DATA[state.set];
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+function matches(r) {
+  const q = norm(state.q.trim());
+  return !q || norm(r.revista + " " + r.institucion + " " + r.ciudad + " " + r.pais).includes(q);
+}
+function visible() {
+  return rows().filter(r => matches(r) && (!state.pais || r.pais === state.pais) && (!state.ciudad || r.ciudad === state.ciudad));
+}
+function cities(list) {
+  return [...d3.group(list, r => r.pais + "|" + r.ciudad).values()]
+    .map(v => ({ pais: v[0].pais, ciudad: v[0].ciudad, lat: v[0].lat, lng: v[0].lng, items: v }));
+}
+
+function draw() {
+  const [w, h] = size();
+  svg.attr("viewBox", `0 0 ${w} ${h}`);
+  projection.fitExtent([[10, 10], [w - 10, h - 10]], { type: "Sphere" });
+  gLand.selectAll("path").data(countries).join("path").attr("d", path);
+  paint();
+}
+
+function paint() {
+  const list = rows();
+  const has = new Set(list.map(r => EN[r.pais] || r.pais));
+  gLand.selectAll("path")
+    .attr("class", d => {
+      const n = d.properties.name;
+      if (!has.has(n)) return "country";
+      const p = ES[n] || n;
+      return "country has" + (state.pais && state.pais !== p ? " dim" : "");
+    })
+    .style("fill", d => has.has(d.properties.name) ? COLOR[ES[d.properties.name] || d.properties.name][0] : null)
+    .on("click", (ev, d) => {
+      const p = ES[d.properties.name] || d.properties.name;
+      if (list.some(r => r.pais === p)) selectPais(state.pais === p && !state.ciudad ? null : p);
+    });
+
+  const LABEL_AT = { "Chile": [-71.2, -26], "Brazil": [-52, -10], "Argentina": [-65.5, -35], "Spain": [-3.7, 40.4], "Peru": [-75, -9], "Ecuador": [-78.4, -1.6], "Uruguay": [-55.9, -32.6], "Colombia": [-73, 2.5] };
+  const labs = countries.filter(f => has.has(f.properties.name)).map(f => {
+    const n = f.properties.name;
+    const [x, y] = LABEL_AT[n] ? projection(LABEL_AT[n]) : path.centroid(f);
+    return { name: ES[n] || n, x, y };
+  });
+  gLabels.selectAll("text").data(labs, d => d.name).join("text").attr("class", "clabel")
+    .text(d => d.name).attr("transform", d => `translate(${d.x},${d.y}) scale(${1 / k})`);
+
+  const pts = cities(visible()).map(c => { const [x, y] = projection([c.lng, c.lat]); return { ...c, x, y }; });
+  const sel = gPins.selectAll(".pin").data(pts, d => d.pais + d.ciudad);
+  sel.exit().remove();
+  const enter = sel.enter().append("g").attr("class", "pin").attr("tabindex", 0).attr("role", "button");
+  enter.append("circle");
+  enter.append("text");
+  const merged = enter.merge(sel)
+    .classed("sel", d => d.ciudad === state.ciudad)
+    .attr("aria-label", d => `${d.ciudad}, ${d.pais}: ${d.items.length} revista(s)`)
+    .attr("transform", d => `translate(${d.x},${d.y}) scale(${1 / k})`)
+    .sort((a, b) => b.items.length - a.items.length);
+  merged.select("circle")
+    .attr("r", d => 9 + Math.sqrt(d.items.length) * 3.6)
+    .style("fill", d => COLOR[d.pais][0]).style("fill-opacity", .9)
+    .style("stroke", d => COLOR[d.pais][1]);
+  merged.select("text").text(d => d.items.length > 1 ? d.items.length : "");
+  merged
+    .on("mouseenter mousemove", (ev, d) => showTip(d))
+    .on("mouseleave", hideTip)
+    .on("click", (ev, d) => { ev.stopPropagation(); selectCiudad(d); })
+    .on("keydown", (ev, d) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); selectCiudad(d); } });
+}
+
+function showTip(d) {
+  const [x, y] = d3.zoomTransform(svg.node()).apply([d.x, d.y]);
+  tip.innerHTML = `<b>${esc(d.ciudad)} · ${esc(d.pais)}</b>` + d.items.slice(0, 4).map(r => esc(r.revista)).join("<br>") +
+    (d.items.length > 4 ? `<br>y ${d.items.length - 4} más` : "");
+  tip.style.left = x + "px"; tip.style.top = y + "px"; tip.style.opacity = 1;
+}
+function hideTip() { tip.style.opacity = 0; }
+
+function zoomTo(list, animate = true) {
+  if (!list.length) return;
+  const [w, h] = size();
+  const xy = list.map(r => projection([r.lng, r.lat]));
+  const [x0, x1] = d3.extent(xy, p => p[0]), [y0, y1] = d3.extent(xy, p => p[1]);
+  const s = Math.min(12, 0.88 / Math.max((x1 - x0 + 80) / w, (y1 - y0 + 80) / h));
+  const t = d3.zoomIdentity.translate(w / 2, h / 2).scale(s).translate(-(x0 + x1) / 2, -(y0 + y1) / 2);
+  if (animate && !matchMedia("(prefers-reduced-motion: reduce)").matches) svg.transition().duration(650).call(zoom.transform, t);
+  else svg.call(zoom.transform, t);
+}
+// vista inicial: América Latina (España queda accesible al alejar)
+function home(animate = true) { zoomTo(rows().filter(r => r.pais !== "España"), animate); }
+
+function selectPais(p) {
+  state.pais = p; state.ciudad = null; update();
+  p ? zoomTo(rows().filter(r => r.pais === p)) : home();
+}
+function selectCiudad(d) {
+  if (state.ciudad === d.ciudad && state.pais === d.pais) { state.ciudad = null; }
+  else { state.pais = d.pais; state.ciudad = d.ciudad; }
+  update();
+}
+
+function renderTop() {
+  const r = rows().filter(matches);
+  const nP = new Set(r.map(x => x.pais)).size;
+  document.getElementById("count").innerHTML = `<b>${r.length}</b> revistas · <b>${nP}</b> países`;
+  document.querySelectorAll(".seg button").forEach(b => {
+    b.setAttribute("aria-pressed", String(b.dataset.set === state.set));
+    b.querySelector(".n").textContent = DATA[b.dataset.set].length;
+  });
+}
+
+function renderSide() {
+  const counts = d3.rollup(rows().filter(matches), v => v.length, r => r.pais);
+  document.getElementById("plabel").textContent = `Países (${counts.size})`;
+  document.getElementById("plist").innerHTML = [...counts].sort((a, b) => a[0].localeCompare(b[0], "es")).map(([p, n]) =>
+    `<li><button data-p="${esc(p)}" aria-pressed="${state.pais === p}"><span class="dot" style="background:${COLOR[p][0]};box-shadow:inset 0 0 0 1.5px ${COLOR[p][1]}"></span><span class="nm">${esc(p)}</span><span class="b">${n}</span></button></li>`).join("");
+  document.querySelectorAll("#plist button").forEach(b => b.onclick = () => selectPais(state.pais === b.dataset.p ? null : b.dataset.p));
+}
+
+function renderDetail() {
+  const list = visible();
+  const lab = document.getElementById("dlabel"), title = document.getElementById("dtitle"), sub = document.getElementById("dsub");
+  if (state.ciudad) { lab.textContent = state.pais; title.textContent = state.ciudad; }
+  else if (state.pais) { lab.textContent = "País"; title.textContent = state.pais; }
+  else { lab.textContent = "Selecciona una región"; title.textContent = "Panorama general"; }
+  const nC = new Set(list.map(r => r.pais + r.ciudad)).size;
+  sub.textContent = list.length ? `${list.length} revista${list.length > 1 ? "s" : ""} en ${nC} ciudad${nC > 1 ? "es" : ""}` +
+    (!state.pais ? ". Haz clic en un punto del mapa o en un país." : "") : "";
+  const el = document.getElementById("list");
+  if (!list.length) { el.innerHTML = `<p class="empty">Ninguna revista coincide con la búsqueda.</p>`; return; }
+  el.innerHTML = [...d3.group(list, r => r.pais)].sort((a, b) => a[0].localeCompare(b[0], "es")).map(([p, v]) =>
+    `<div class="group">${state.pais ? "" : `<h3><span class="dot" style="background:${COLOR[p][0]}"></span>${esc(p)} · ${v.length}</h3>`}` +
+    v.slice().sort((a, b) => a.ciudad.localeCompare(b.ciudad, "es") || a.revista.localeCompare(b.revista, "es")).map(r =>
+      `<div class="item">
+        ${r.web ? `<a class="t" href="${esc(r.web)}" target="_blank" rel="noopener">${esc(r.revista)}</a>` : `<span class="t">${esc(r.revista)}</span>`}
+        <span class="i">${esc(r.institucion)}</span>
+        ${state.ciudad ? "" : `<button class="c" data-c="${esc(r.ciudad)}" data-p="${esc(r.pais)}">${esc(r.ciudad)}</button>`}
+      </div>`).join("") + `</div>`).join("");
+  el.querySelectorAll(".c").forEach(b => b.onclick = () => {
+    state.pais = b.dataset.p; state.ciudad = b.dataset.c; update();
+    zoomTo(rows().filter(r => r.pais === b.dataset.p && r.ciudad === b.dataset.c));
+  });
+}
+
+function update() { renderTop(); renderSide(); renderDetail(); paint(); }
+
+document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
+  if (state.set === b.dataset.set) return;
+  state.set = b.dataset.set; state.pais = null; state.ciudad = null;
+  update(); home();
+});
+document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; state.ciudad = null; update(); });
+document.getElementById("all").onclick = () => selectPais(null);
+document.getElementById("zin").onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1.6);
+document.getElementById("zout").onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1 / 1.6);
+svg.on("click", ev => { if (ev.target === svg.node() && state.ciudad) { state.ciudad = null; update(); } });
+
+let rt;
+window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { draw(); state.pais ? zoomTo(visible(), false) : home(false); }, 150); });
+
+draw(); update(); home(false);
+}).catch(() => { document.getElementById("loading").textContent = "No se pudo cargar el mapa. Recarga la página."; });
+</script>
+
+</body>
+</html>
