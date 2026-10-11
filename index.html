@@ -167,6 +167,7 @@ button:focus-visible, input:focus-visible, a:focus-visible, .pin:focus-visible {
       <div class="zoom">
         <button id="zin" aria-label="Acercar">+</button>
         <button id="zout" aria-label="Alejar">−</button>
+        <button id="flip" aria-label="Cambiar orientación del mapa" title="Sur arriba / Norte arriba">⇅</button>
       </div>
       <div class="tip" id="tip"></div>
     </div>
@@ -276,7 +277,9 @@ const gLabels = gRoot.append("g");
 const gPins = gRoot.append("g");
 const tip = document.getElementById("tip");
 const countries = topojson.feature(WORLD, WORLD.objects.countries).features.filter(f => f.properties.name !== "Antarctica");
-const projection = d3.geoNaturalEarth1();
+// Mapa invertido (sur arriba), al estilo de "América invertida". El botón ⇅ alterna la orientación.
+let invertido = true;
+const projection = d3.geoNaturalEarth1().angle(180);
 const path = d3.geoPath(projection);
 let k = 1;
 
@@ -448,6 +451,12 @@ document.querySelectorAll(".seg button").forEach(b => b.onclick = () => {
 document.getElementById("q").addEventListener("input", e => { state.q = e.target.value; state.ciudad = null; update(); });
 document.getElementById("all").onclick = () => selectPais(null);
 document.getElementById("zin").onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1.6);
+document.getElementById("flip").onclick = () => {
+  invertido = !invertido;
+  projection.angle(invertido ? 180 : 0);
+  draw();
+  state.pais ? zoomTo(rows().filter(r => r.pais === state.pais), false) : home(false);
+};
 document.getElementById("zout").onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1 / 1.6);
 svg.on("click", ev => { if (ev.target === svg.node() && state.ciudad) { state.ciudad = null; update(); } });
 
