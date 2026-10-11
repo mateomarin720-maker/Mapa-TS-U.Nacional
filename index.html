@@ -186,10 +186,54 @@ button:focus-visible, input:focus-visible, a:focus-visible, .pin:focus-visible {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <script>
+// ===== CONEXIÓN CON LA HOJA DE GOOGLE =====
+// Enlaces CSV de las pestañas publicadas (Archivo → Compartir → Publicar en la web → pestaña → CSV).
+// Si quedan vacíos o la hoja no responde, el mapa usa la copia de respaldo de abajo.
+const SHEET_CSV = {
+  inscritos: "",
+  asistentes: ""
+};
+
+// Coordenadas conocidas (país|ciudad tal como aparece en la hoja → nombre a mostrar, lat, lng).
+// Las ciudades nuevas se ubican solas (OpenStreetMap); si no se encuentran, el punto va al centro del país.
+const KNOWN = {
+  "argentina|cordoba": ["Córdoba", -31.4201, -64.1888],
+  "argentina|buenos aires": ["Provincia de Buenos Aires", -34.6037, -58.3816],
+  "argentina|la plata": ["La Plata", -34.9214, -57.9545],
+  "argentina|rosario": ["Rosario", -32.9442, -60.6505],
+  "brasil|vitoria, espirito santo": ["Vitória, Espírito Santo", -20.3155, -40.3128],
+  "brasil|cuiaba, mato grosso": ["Cuiabá, Mato Grosso", -15.6014, -56.0979],
+  "brasil|sao paulo": ["São Paulo", -23.5505, -46.6333],
+  "brasil|montes claros, mina gerais": ["Montes Claros, Minas Gerais", -16.735, -43.8617],
+  "brasil|montes claros, minas gerais": ["Montes Claros, Minas Gerais", -16.735, -43.8617],
+  "brasil|rio de janeiro": ["Rio de Janeiro", -22.9068, -43.1729],
+  "brasil|brasilia": ["Brasília", -15.7939, -47.8828],
+  "brasil|juiz de fora, minas gerais": ["Juiz de Fora, Minas Gerais", -21.7642, -43.3496],
+  "brasil|florianopolis, santa catarina": ["Florianópolis, Santa Catarina", -27.5954, -48.548],
+  "brasil|ceara": ["Fortaleza, Ceará", -3.7319, -38.5267],
+  "chile|santiago de chile": ["Santiago de Chile", -33.4489, -70.6693],
+  "chile|talca": ["Talca", -35.4264, -71.6554],
+  "chile|concepcion": ["Concepción", -36.827, -73.0503],
+  "colombia|manizales, caldas": ["Manizales, Caldas", 5.0703, -75.5138],
+  "colombia|bogota, colombia": ["Bogotá", 4.711, -74.0721],
+  "colombia|bogota": ["Bogotá", 4.711, -74.0721],
+  "colombia|santiago de cali, valle del cauca": ["Santiago de Cali, Valle del Cauca", 3.4516, -76.532],
+  "colombia|medellin, antioquia": ["Medellín, Antioquia", 6.2442, -75.5812],
+  "ecuador|manta": ["Manta, Manabí", -0.9677, -80.7089],
+  "espana|murcia": ["Murcia", 37.9922, -1.1307],
+  "peru|": ["Huancayo, Junín", -12.0651, -75.2049],
+  "uruguay|montevideo": ["Montevideo", -34.9011, -56.1645]
+};
+// Correcciones de nombres que vienen de la hoja
+const NAME_FIX = {
+  "para la feria se postulo un articulo publicado en la revista reflexiones de trabajo social": "Reflexiones de Trabajo Social"
+};
+
+// ===== COPIA DE RESPALDO (se usa solo si la hoja no está disponible) =====
 // ===== DATOS =====
 // Para agregar una revista, copia una línea { ... } dentro de "inscritos" o "asistentes" y cambia sus valores.
 // lat / lng = coordenadas de la ciudad (en Google Maps: clic derecho sobre la ciudad).
-const DATA = {
+let DATA = {
  "inscritos": [
   {"pais": "Argentina", "ciudad": "Córdoba", "lat": -31.4201, "lng": -64.1888, "revista": "Revista Conciencia Social", "institucion": "Universidad Nacional de Córdoba", "web": "https://revistas.unc.edu.ar/index.php/ConCienciaSocial/index"},
   {"pais": "Argentina", "ciudad": "Provincia de Buenos Aires", "lat": -34.6037, "lng": -58.3816, "revista": "Plaza Pública. Revista de Trabajo Social", "institucion": "Universidad Nacional del Centro de la Provincia de Buenos Aires", "web": "https://ojs2.fch.unicen.edu.ar/ojs-3.1.0/index.php/plaza-publica/issue/archive"},
@@ -250,13 +294,75 @@ const DATA = {
  ]
 };
 // Mapa base (fronteras) desde world-atlas
-fetch("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json").then(r => r.json()).then(WORLD => {
+const COUNTRY_EN = { "argentina":"Argentina", "bolivia":"Bolivia", "brasil":"Brazil", "brazil":"Brazil", "chile":"Chile",
+  "colombia":"Colombia", "costa rica":"Costa Rica", "cuba":"Cuba", "ecuador":"Ecuador", "el salvador":"El Salvador",
+  "espana":"Spain", "guatemala":"Guatemala", "haiti":"Haiti", "honduras":"Honduras", "mexico":"Mexico", "nicaragua":"Nicaragua",
+  "panama":"Panama", "paraguay":"Paraguay", "peru":"Peru", "portugal":"Portugal", "puerto rico":"Puerto Rico",
+  "republica dominicana":"Dominican Rep.", "uruguay":"Uruguay", "venezuela":"Venezuela", "estados unidos":"United States of America",
+  "canada":"Canada", "francia":"France", "italia":"Italy" };
+const clean = s => String(s || "").replace(/\s+/g, " ").trim();
+const key = s => clean(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+function parseSheet(text) {
+  const rows = d3.csvParseRows(text);
+  const head = (rows.shift() || []).map(key);
+  const col = (re, fb) => { const i = head.findIndex(h => re.test(h)); return i >= 0 ? i : fb; };
+  const cP = col(/^pais/, 0), cC = col(/ciudad|estado|provincia/, 1), cR = col(/revista/, 2), cI = col(/institucion/, 3), cW = col(/web|pagina|url/, 4);
+  return rows.map(r => ({
+    pais: clean(r[cP]), ciudadRaw: clean(r[cC]), revista: clean(r[cR]), institucion: clean(r[cI]),
+    web: clean(r[cW]).split(/\s+/)[0].replace(/[?&](fbclid|srsltid)=[^&]*/g, "")
+  })).filter(r => r.pais && r.revista).map(r => {
+    r.pais = r.pais.charAt(0).toUpperCase() + r.pais.slice(1);
+    r.revista = NAME_FIX[key(r.revista)] || r.revista;
+    return r;
+  });
+}
+
+let geoCache = {};
+try { geoCache = JSON.parse(localStorage.getItem("mapa-ts-geo") || "{}"); } catch (e) {}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function locate(rows, WORLD) {
+  const feats = topojson.feature(WORLD, WORLD.objects.countries).features;
+  let asked = 0;
+  for (const r of rows) {
+    const k = key(r.pais) + "|" + key(r.ciudadRaw);
+    let hit = KNOWN[k] || geoCache[k];
+    if (!hit && r.ciudadRaw && asked < 15) {
+      try {
+        if (asked++) await sleep(1100);   // OpenStreetMap pide máximo una consulta por segundo
+        const res = await fetch("https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=es&q=" +
+          encodeURIComponent(r.ciudadRaw + ", " + r.pais));
+        const j = await res.json();
+        if (j[0]) { hit = [r.ciudadRaw, +j[0].lat, +j[0].lon]; geoCache[k] = hit; }
+      } catch (e) {}
+    }
+    if (!hit) {   // sin ciudad o no encontrada: centro del país
+      const f = feats.find(f => f.properties.name === COUNTRY_EN[key(r.pais)]);
+      const c = f ? d3.geoCentroid(f) : [0, 0];
+      hit = [r.ciudadRaw || r.pais, c[1], c[0]];
+    }
+    [r.ciudad, r.lat, r.lng] = hit;
+    delete r.ciudadRaw;
+  }
+  try { localStorage.setItem("mapa-ts-geo", JSON.stringify(geoCache)); } catch (e) {}
+  return rows;
+}
+
+async function loadSheet(WORLD) {
+  if (!SHEET_CSV.inscritos || !SHEET_CSV.asistentes) return;
+  try {
+    const [a, b] = await Promise.all([SHEET_CSV.inscritos, SHEET_CSV.asistentes].map(u =>
+      fetch(u + (u.includes("?") ? "&" : "?") + "t=" + Date.now()).then(r => { if (!r.ok) throw r.status; return r.text(); })));
+    const ins = await locate(parseSheet(a), WORLD), asi = await locate(parseSheet(b), WORLD);
+    if (ins.length) DATA = { inscritos: ins, asistentes: asi };
+  } catch (e) { console.warn("No se pudo leer la hoja; se usa la copia de respaldo.", e); }
+}
+
+fetch("https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json").then(r => r.json())
+  .then(WORLD => loadSheet(WORLD).then(() => WORLD)).then(WORLD => {
 document.getElementById("loading").remove();
 
-const EN = { "Argentina":"Argentina", "Brasil":"Brazil", "Chile":"Chile", "Colombia":"Colombia",
-  "Ecuador":"Ecuador", "España":"Spain", "Perú":"Peru", "Uruguay":"Uruguay", "México":"Mexico",
-  "Venezuela":"Venezuela", "Bolivia":"Bolivia", "Paraguay":"Paraguay", "Costa Rica":"Costa Rica",
-  "Cuba":"Cuba", "Puerto Rico":"Puerto Rico", "Portugal":"Portugal", "Guatemala":"Guatemala" };
+const EN = Object.fromEntries([...DATA.inscritos, ...DATA.asistentes].map(r => [r.pais, COUNTRY_EN[key(r.pais)] || r.pais]));
 const ES = Object.fromEntries(Object.entries(EN).map(([a, b]) => [b, a]));
 
 // Paleta pastel de la referencia: [relleno, borde]
