@@ -110,6 +110,14 @@ button:focus-visible, input:focus-visible, a:focus-visible, .pin:focus-visible {
 .item .t { font: 600 15px/1.3 var(--f-display); color: var(--ink); text-decoration: none; }
 .item a.t:hover { color: var(--accent); text-decoration: underline; }
 .item .i { color: var(--muted); font-size: 13px; }
+.contact { margin: 4px 0 2px; padding: 8px 10px; background: var(--field); border-radius: 7px; display: grid; gap: 3px; }
+.contact p { margin: 0; font-size: 13px; line-height: 1.35; min-width: 0; }
+.contact .k { display: block; font: 700 10.5px/1.4 var(--f-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.contact .mail { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.contact .mail a { color: var(--accent); text-decoration: none; overflow-wrap: anywhere; min-width: 0; user-select: all; }
+.contact .mail a:hover { text-decoration: underline; }
+.contact .copy { flex: none; font: 600 11px var(--f-body); color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 5px; padding: 2px 7px; cursor: pointer; }
+.contact .copy:hover { color: var(--accent); border-color: var(--accent); }
 .item .c { font: 600 12.5px var(--f-body); color: var(--accent); cursor: pointer; background: none; border: 0; padding: 0; text-align: left; justify-self: start; }
 .empty { color: var(--muted); padding: 28px 0; text-align: center; }
 
@@ -143,7 +151,7 @@ button:focus-visible, input:focus-visible, a:focus-visible, .pin:focus-visible {
     <img class="logo" src="https://revistas.unal.edu.co/plugins/themes/revistasunal/styles/plantillaPersonalizada/unal2026/logos/coat-of-arms-light-green.svg" alt="Escudo de la Universidad Nacional de Colombia" onerror="this.remove()">
     <label class="search">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="Buscar revista, institución o ciudad…" aria-label="Buscar revista, institución o ciudad">
+      <input id="q" type="search" placeholder="Buscar revista, editor, institución o ciudad…" aria-label="Buscar revista, editor, institución o ciudad">
     </label>
     <span class="count" id="count"></span>
     <div class="corner">
@@ -235,62 +243,62 @@ const NAME_FIX = {
 // lat / lng = coordenadas de la ciudad (en Google Maps: clic derecho sobre la ciudad).
 let DATA = {
  "inscritos": [
-  {"pais": "Argentina", "ciudad": "Córdoba", "lat": -31.4201, "lng": -64.1888, "revista": "Revista Conciencia Social", "institucion": "Universidad Nacional de Córdoba", "web": "https://revistas.unc.edu.ar/index.php/ConCienciaSocial/index"},
-  {"pais": "Argentina", "ciudad": "Provincia de Buenos Aires", "lat": -34.6037, "lng": -58.3816, "revista": "Plaza Pública. Revista de Trabajo Social", "institucion": "Universidad Nacional del Centro de la Provincia de Buenos Aires", "web": "https://ojs2.fch.unicen.edu.ar/ojs-3.1.0/index.php/plaza-publica/issue/archive"},
-  {"pais": "Argentina", "ciudad": "La Plata", "lat": -34.9214, "lng": -57.9545, "revista": "Escenarios. Revista de Trabajo Social y Ciencias Sociales", "institucion": "Universidad Nacional de La Plata", "web": "https://revistas.unlp.edu.ar/escenarios/index"},
-  {"pais": "Argentina", "ciudad": "Rosario", "lat": -32.9442, "lng": -60.6505, "revista": "Cátedra Paralela", "institucion": "Universidad Nacional de Rosario", "web": "https://catedraparalela.unr.edu.ar/index.php/revista"},
-  {"pais": "Brasil", "ciudad": "Vitória, Espírito Santo", "lat": -20.3155, "lng": -40.3128, "revista": "Argumentum", "institucion": "Universidade Federal do Espírito Santo", "web": "https://periodicos.ufes.br/argumentum/"},
-  {"pais": "Brasil", "ciudad": "Cuiabá, Mato Grosso", "lat": -15.6014, "lng": -56.0979, "revista": "Revista Direitos, Trabalho e Política Social", "institucion": "Universidade Federal de Mato Grosso (UFMT)", "web": "https://periodicoscientificos.ufmt.br/ojs/index.php/rdtps/issue/view/881"},
-  {"pais": "Brasil", "ciudad": "São Paulo", "lat": -23.5505, "lng": -46.6333, "revista": "Serviço Social e Sociedade", "institucion": "Cortez Editora Ltda", "web": "https://www.scielo.br/j/sssoc/"},
-  {"pais": "Brasil", "ciudad": "Montes Claros, Minas Gerais", "lat": -16.735, "lng": -43.8617, "revista": "Revista Serviço Social em Perspectiva - Revista do Curso de Serviço Social", "institucion": "Universidad Estatal de Montes Claros", "web": "https://www.periodicos.unimontes.br/index.php/sesoperspectiva/index"},
-  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Praia Vermelha", "institucion": "Universidad Federal de Río de Janeiro", "web": "https://praiavermelha.ess.ufrj.br/"},
-  {"pais": "Brasil", "ciudad": "Brasília", "lat": -15.7939, "lng": -47.8828, "revista": "Revista SER Social", "institucion": "Universidade de Brasília", "web": "https://periodicos.unb.br/index.php/SER_Social"},
-  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Temporalis", "institucion": "ASSOCIAÇÃO BRASILEIRA DE ENSINO E PESQUISA EM SERVIÇO SOCIAL - ABEPSS, BRASIL.", "web": "https://periodicos.ufes.br/temporalis"},
-  {"pais": "Brasil", "ciudad": "Juiz de Fora, Minas Gerais", "lat": -21.7642, "lng": -43.3496, "revista": "Revista Libertas", "institucion": "Universidade Federal de Juiz de Fora", "web": "https://periodicos.ufjf.br/index.php/libertas/index"},
-  {"pais": "Brasil", "ciudad": "São Paulo", "lat": -23.5505, "lng": -46.6333, "revista": "Serviço Social & Realidade", "institucion": "UNESP (Universidade Estadual Paulista “Júlio de Mesquita Filho”)", "web": "https://ojs.franca.unesp.br/index.php/SSR"},
-  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Em Pauta: teoria social e realidade contemporânea", "institucion": "Universidade do Estado do Rio de Janeiro", "web": "https://www.e-publicacoes.uerj.br/revistaempauta/index"},
-  {"pais": "Brasil", "ciudad": "Florianópolis, Santa Catarina", "lat": -27.5954, "lng": -48.548, "revista": "Revista Katálysis", "institucion": "Universidade Federal de Santa Catarina", "web": "https://periodicos.ufsc.br/index.php/katalysis/index"},
-  {"pais": "Brasil", "ciudad": "Fortaleza, Ceará", "lat": -3.7319, "lng": -38.5267, "revista": "CARTILLA: Trabalho Social com famílias negras, povos originários e comunidades tradicionais no Ceará.", "institucion": "Comitê de Combate ao Racismo do Conselho Regional de Serviço Social - 3ª Região", "web": "https://drive.google.com/file/d/1ap1paz1DB5WvM31OvcYmpJ1y-RG-oshU/view"},
-  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista O Social em Questão", "institucion": "Programa de Pós-graduação em Serviço Social do Departamento de Serviço Social da Pontifícia Universidade Católica do Rio de Janeiro (PUC-Rio)", "web": "https://www.maxwell.vrac.puc-rio.br/rev_OSQ.php"},
-  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista Intervención", "institucion": "Universidad Alberto Hurtado", "web": "https://intervencion.uahurtado.cl/index.php/intervencion/about"},
-  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista de Trabajo Social", "institucion": "Pontificia Universidad Católica de Chile", "web": "https://revistatrabajosocial.uc.cl/"},
-  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista Propuestas Críticas en Trabajo Social", "institucion": "Universidad de Chile", "web": "https://revistapropuestascriticas.uchile.cl/"},
-  {"pais": "Chile", "ciudad": "Talca", "lat": -35.4264, "lng": -71.6554, "revista": "Revista Pensamiento y Acción Interdisciplinaria", "institucion": "Universidad Católica del Maule", "web": "https://revistapai.ucm.cl/"},
-  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Complejidades Latinoamericanas", "institucion": "Corporación de Estudios Avanzados en Trabajo Social (CEATSO)", "web": "https://ceatso.com/revista_complejidades_latinoamericanas/"},
-  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Campos Problemáticos en el Trabajo Social Latinoamericano", "institucion": "Corporación de Estudios Avanzados en Trabajo Social (CEATSO)", "web": "https://ceatso.com/revista-electronica-campos-problematicos-en-el-trabajo-social-latinoamericano/"},
-  {"pais": "Chile", "ciudad": "Concepción", "lat": -36.827, "lng": -73.0503, "revista": "Revista Electrónica de Trabajo Social", "institucion": "Universidad de Concepción", "web": "https://trabajosocial.udec.cl/revista/numero-actual/"},
-  {"pais": "Colombia", "ciudad": "Manizales, Caldas", "lat": 5.0703, "lng": -75.5138, "revista": "Revista Eleuthera", "institucion": "Universidad de Caldas", "web": "https://revistasojs.ucaldas.edu.co/index.php/eleuthera/index"},
-  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Trabajo Social", "institucion": "Universidad Nacional de Colombia", "web": "https://revistas.unal.edu.co/index.php/tsocial"},
-  {"pais": "Colombia", "ciudad": "Santiago de Cali, Valle del Cauca", "lat": 3.4516, "lng": -76.532, "revista": "Prospectiva. Revista de Trabajo Social e intervención social", "institucion": "Universidad del Valle", "web": "https://revistaprospectiva.univalle.edu.co/index.php/prospectiva/index"},
-  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Colombiana de Trabajo Social", "institucion": "CONETS", "web": "https://conetsco.org/"},
-  {"pais": "Colombia", "ciudad": "Medellín, Antioquia", "lat": 6.2442, "lng": -75.5812, "revista": "Revista de Trabajo Social", "institucion": "Universidad de Antioquia", "web": "https://revistas.udea.edu.co/index.php/revistraso"},
-  {"pais": "Colombia", "ciudad": "Medellín, Antioquia", "lat": 6.2442, "lng": -75.5812, "revista": "Revista de la Facultad de Trabajo Social UPB", "institucion": "Universidad Pontificia Bolivariana", "web": "https://revistas.upb.edu.co/index.php/trabajosocial"},
-  {"pais": "Ecuador", "ciudad": "Manta, Manabí", "lat": -0.9677, "lng": -80.7089, "revista": "Revista Científica y Arbitrada de Ciencias Sociales y Trabajo Social: Tejedora", "institucion": "Universidad Laica Eloy Alfaro De Manabi", "web": "https://publicacionescd.uleam.edu.ec/index.php/tejedora/"},
-  {"pais": "España", "ciudad": "Murcia", "lat": 37.9922, "lng": -1.1307, "revista": "AZARBE Revista Internacional de Trabajo Social y Bienestar", "institucion": "Universidad de Murcia", "web": "https://revistas.um.es/azarbe"},
-  {"pais": "Perú", "ciudad": "Huancayo, Junín", "lat": -12.0651, "lng": -75.2049, "revista": "Reflexiones de Trabajo Social", "institucion": "Universidad Nacional del Centro del Perú", "web": "https://revistas.uncp.edu.pe/index.php/reflexiones/about/contact"},
-  {"pais": "Uruguay", "ciudad": "Montevideo", "lat": -34.9011, "lng": -56.1645, "revista": "Revista Fronteras", "institucion": "Universidad de la República, Uruguay", "web": "https://revistasfcs.edu.uy/index.php/ftas/about"}
+  {"pais": "Argentina", "ciudad": "Córdoba", "lat": -31.4201, "lng": -64.1888, "revista": "Revista Conciencia Social", "institucion": "Universidad Nacional de Córdoba", "web": "https://revistas.unc.edu.ar/index.php/ConCienciaSocial/index", "editores": ["Marianela Grasso"], "correos": ["marianela.grasso@unc.edu.ar"]},
+  {"pais": "Argentina", "ciudad": "Provincia de Buenos Aires", "lat": -34.6037, "lng": -58.3816, "revista": "Plaza Pública. Revista de Trabajo Social", "institucion": "Universidad Nacional del Centro de la Provincia de Buenos Aires", "web": "https://ojs2.fch.unicen.edu.ar/ojs-3.1.0/index.php/plaza-publica/issue/archive", "editores": ["Laura Julieta Rebori"], "correos": ["revistaplazapublica@fch.unicen.edu.ar"]},
+  {"pais": "Argentina", "ciudad": "La Plata", "lat": -34.9214, "lng": -57.9545, "revista": "Escenarios. Revista de Trabajo Social y Ciencias Sociales", "institucion": "Universidad Nacional de La Plata", "web": "https://revistas.unlp.edu.ar/escenarios/index", "editores": ["Alejandra Wagner"], "correos": ["escenariosftsunlp@gmail.com"]},
+  {"pais": "Argentina", "ciudad": "Rosario", "lat": -32.9442, "lng": -60.6505, "revista": "Cátedra Paralela", "institucion": "Universidad Nacional de Rosario", "web": "https://catedraparalela.unr.edu.ar/index.php/revista", "editores": ["Mariana Servio"], "correos": ["mserviodeagueda@gmail.com", "catedraparalela@fcpolit.unr.edu.ar"]},
+  {"pais": "Brasil", "ciudad": "Vitória, Espírito Santo", "lat": -20.3155, "lng": -40.3128, "revista": "Argumentum", "institucion": "Universidade Federal do Espírito Santo", "web": "https://periodicos.ufes.br/argumentum/", "editores": ["Maria Lucia Teixeira Garcia"], "correos": ["lucia-garcia@uol.com.br"]},
+  {"pais": "Brasil", "ciudad": "Cuiabá, Mato Grosso", "lat": -15.6014, "lng": -56.0979, "revista": "Revista Direitos, Trabalho e Política Social", "institucion": "Universidade Federal de Mato Grosso (UFMT)", "web": "https://periodicoscientificos.ufmt.br/ojs/index.php/rdtps/issue/view/881", "editores": ["Leana Oliveira Freitas"], "correos": ["leana.freitas@ufmt.br"]},
+  {"pais": "Brasil", "ciudad": "São Paulo", "lat": -23.5505, "lng": -46.6333, "revista": "Serviço Social e Sociedade", "institucion": "Cortez Editora Ltda", "web": "https://www.scielo.br/j/sssoc/", "editores": ["Esther Luiza De Souza Lemos", "Luiduina de Oliveira e Silva"], "correos": ["estherlemos@gmail.com", "liduoliveira90@gmail.com"]},
+  {"pais": "Brasil", "ciudad": "Montes Claros, Minas Gerais", "lat": -16.735, "lng": -43.8617, "revista": "Revista Serviço Social em Perspectiva - Revista do Curso de Serviço Social", "institucion": "Universidad Estatal de Montes Claros", "web": "https://www.periodicos.unimontes.br/index.php/sesoperspectiva/index", "editores": ["Diego Tabosa Da Silva", "Geusiani Pereira Silva e Nascimento", "Noêmia de Fátima Silva Lopes"], "correos": ["tabosa.diego@unifesp.br", "geusiani.nascimento@unimontes.br", "nfslopes@yahoo.com.br"]},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Praia Vermelha", "institucion": "Universidad Federal de Río de Janeiro", "web": "https://praiavermelha.ess.ufrj.br/", "editores": ["Fábio Marinho", "Janete Leite"], "correos": ["f.marinho@ess.ufrj.br", "janetell@ess.ufrj.br"]},
+  {"pais": "Brasil", "ciudad": "Brasília", "lat": -15.7939, "lng": -47.8828, "revista": "Revista SER Social", "institucion": "Universidade de Brasília", "web": "https://periodicos.unb.br/index.php/SER_Social", "editores": ["Thaís Imperatori"], "correos": ["thaisimperatori@unb.br"]},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Temporalis", "institucion": "ASSOCIAÇÃO BRASILEIRA DE ENSINO E PESQUISA EM SERVIÇO SOCIAL - ABEPSS, BRASIL.", "web": "https://periodicos.ufes.br/temporalis", "editores": ["Ana Lole", "Aparecide Milanez"], "correos": ["analole@gmail.com", "aparecidamilanez@ufpi.edu.br"]},
+  {"pais": "Brasil", "ciudad": "Juiz de Fora, Minas Gerais", "lat": -21.7642, "lng": -43.3496, "revista": "Revista Libertas", "institucion": "Universidade Federal de Juiz de Fora", "web": "https://periodicos.ufjf.br/index.php/libertas/index", "editores": ["Alexandra Aparecida Leite Toffanetto Seabra Eiras"], "correos": ["alexandra.eiras@ufjf.br"]},
+  {"pais": "Brasil", "ciudad": "São Paulo", "lat": -23.5505, "lng": -46.6333, "revista": "Serviço Social & Realidade", "institucion": "UNESP (Universidade Estadual Paulista “Júlio de Mesquita Filho”)", "web": "https://ojs.franca.unesp.br/index.php/SSR", "editores": ["Nayara Hakime Dutra"], "correos": ["nayara.hakime@unesp.br"]},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Em Pauta: teoria social e realidade contemporânea", "institucion": "Universidade do Estado do Rio de Janeiro", "web": "https://www.e-publicacoes.uerj.br/revistaempauta/index", "editores": ["Patricia Trajano"], "correos": ["pattrajano@gmail.com"]},
+  {"pais": "Brasil", "ciudad": "Florianópolis, Santa Catarina", "lat": -27.5954, "lng": -48.548, "revista": "Revista Katálysis", "institucion": "Universidade Federal de Santa Catarina", "web": "https://periodicos.ufsc.br/index.php/katalysis/index", "editores": ["Mailiz Garibotti Lusa", "Tania Regina kruger", "Michelly Wiese"], "correos": ["mailiz.lusa@ufsc.br", "tania.kruger@ufsc.br"]},
+  {"pais": "Brasil", "ciudad": "Fortaleza, Ceará", "lat": -3.7319, "lng": -38.5267, "revista": "CARTILLA: Trabalho Social com famílias negras, povos originários e comunidades tradicionais no Ceará.", "institucion": "Comitê de Combate ao Racismo do Conselho Regional de Serviço Social - 3ª Região", "web": "https://drive.google.com/file/d/1ap1paz1DB5WvM31OvcYmpJ1y-RG-oshU/view", "editores": ["Ana Paula Silveira de Morais Vasconcelos"], "correos": ["anapaulasilveirass@yahoo.com.br"]},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista O Social em Questão", "institucion": "Programa de Pós-graduação em Serviço Social do Departamento de Serviço Social da Pontifícia Universidade Católica do Rio de Janeiro (PUC-Rio)", "web": "https://www.maxwell.vrac.puc-rio.br/rev_OSQ.php", "editores": ["Ana Lole"], "correos": ["analole@gmail.com"]},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista Intervención", "institucion": "Universidad Alberto Hurtado", "web": "https://intervencion.uahurtado.cl/index.php/intervencion/about", "editores": ["Mitzi Duboy Luengo"], "correos": ["mduboy@uahurtado.cl"]},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista de Trabajo Social", "institucion": "Pontificia Universidad Católica de Chile", "web": "https://revistatrabajosocial.uc.cl/", "editores": ["Alejandra Rasse"], "correos": ["arasse@uc.cl"]},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista Propuestas Críticas en Trabajo Social", "institucion": "Universidad de Chile", "web": "https://revistapropuestascriticas.uchile.cl/", "editores": ["Javiera Cubillos Almendra"], "correos": ["javieracubillos@uchile.cl"]},
+  {"pais": "Chile", "ciudad": "Talca", "lat": -35.4264, "lng": -71.6554, "revista": "Revista Pensamiento y Acción Interdisciplinaria", "institucion": "Universidad Católica del Maule", "web": "https://revistapai.ucm.cl/", "editores": ["Camila Rasse"], "correos": ["crasse@ucm.cl"]},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Complejidades Latinoamericanas", "institucion": "Corporación de Estudios Avanzados en Trabajo Social (CEATSO)", "web": "https://ceatso.com/revista_complejidades_latinoamericanas/", "editores": ["Cindy Margarita López Murillo"], "correos": ["cindyluu.m@gmail.com"]},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Campos Problemáticos en el Trabajo Social Latinoamericano", "institucion": "Corporación de Estudios Avanzados en Trabajo Social (CEATSO)", "web": "https://ceatso.com/revista-electronica-campos-problematicos-en-el-trabajo-social-latinoamericano/", "editores": ["Belinda Espinosa Cazarez"], "correos": ["lic.belinda.esca@gmail.com"]},
+  {"pais": "Chile", "ciudad": "Concepción", "lat": -36.827, "lng": -73.0503, "revista": "Revista Electrónica de Trabajo Social", "institucion": "Universidad de Concepción", "web": "https://trabajosocial.udec.cl/revista/numero-actual/", "editores": ["Claudia Verónica Castillo Rozas"], "correos": ["ccastill@udec.cl"]},
+  {"pais": "Colombia", "ciudad": "Manizales, Caldas", "lat": 5.0703, "lng": -75.5138, "revista": "Revista Eleuthera", "institucion": "Universidad de Caldas", "web": "https://revistasojs.ucaldas.edu.co/index.php/eleuthera/index", "editores": ["Sergio Andrés Quintero Londoño"], "correos": ["eleuthera@ucaldas.edu.co", "sergio.quintero@ucaldas.edu.co"]},
+  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Trabajo Social", "institucion": "Universidad Nacional de Colombia", "web": "https://revistas.unal.edu.co/index.php/tsocial", "editores": ["Maira Judith Contreras Santos"], "correos": ["mjcontrerass@unal.edu.co", "revtrasoc_bog@unal.edu.co"]},
+  {"pais": "Colombia", "ciudad": "Santiago de Cali, Valle del Cauca", "lat": 3.4516, "lng": -76.532, "revista": "Prospectiva. Revista de Trabajo Social e intervención social", "institucion": "Universidad del Valle", "web": "https://revistaprospectiva.univalle.edu.co/index.php/prospectiva/index", "editores": ["Solanyer Lopez Alvarez"], "correos": ["solanyer.lopez@correounivalle.edu.co"]},
+  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Colombiana de Trabajo Social", "institucion": "CONETS", "web": "https://conetsco.org/", "editores": ["Maira Judith Contreras Santos", "Liliana Marcela Cañas Baquero", "Iovan Parra Cuestas"], "correos": ["mjcontrerass@unal.edu.co", "conetscol2020@gmail.com", "iovanparra@gmail.com"]},
+  {"pais": "Colombia", "ciudad": "Medellín, Antioquia", "lat": 6.2442, "lng": -75.5812, "revista": "Revista de Trabajo Social", "institucion": "Universidad de Antioquia", "web": "https://revistas.udea.edu.co/index.php/revistraso", "editores": ["José Roberto Álvarez Munera", "Hugo Villa"], "correos": ["roberto.alvarez@udea.edu.co", "alexander.villa@udea.edu.co", "revistatrabajosocial@udea.edu.co"]},
+  {"pais": "Colombia", "ciudad": "Medellín, Antioquia", "lat": 6.2442, "lng": -75.5812, "revista": "Revista de la Facultad de Trabajo Social UPB", "institucion": "Universidad Pontificia Bolivariana", "web": "https://revistas.upb.edu.co/index.php/trabajosocial", "editores": ["Gustavo Adolfo Muñoz Marín"], "correos": ["gustavo.munoz@upb.edu.co"]},
+  {"pais": "Ecuador", "ciudad": "Manta, Manabí", "lat": -0.9677, "lng": -80.7089, "revista": "Revista Científica y Arbitrada de Ciencias Sociales y Trabajo Social: Tejedora", "institucion": "Universidad Laica Eloy Alfaro De Manabi", "web": "https://publicacionescd.uleam.edu.ec/index.php/tejedora/", "editores": ["Adriana Arangundi", "Carmita Álvarez Santana"], "correos": ["rcacstb.tejedora@uleam.edu.ec", "Carmita.alvarez@uleam.edu.ec", "Carmitaalvarez1@yahoo.es"]},
+  {"pais": "España", "ciudad": "Murcia", "lat": 37.9922, "lng": -1.1307, "revista": "AZARBE Revista Internacional de Trabajo Social y Bienestar", "institucion": "Universidad de Murcia", "web": "https://revistas.um.es/azarbe", "editores": [], "correos": []},
+  {"pais": "Perú", "ciudad": "Huancayo, Junín", "lat": -12.0651, "lng": -75.2049, "revista": "Reflexiones de Trabajo Social", "institucion": "Universidad Nacional del Centro del Perú", "web": "https://revistas.uncp.edu.pe/index.php/reflexiones/about/contact", "editores": ["Hilda Rosario Beraún Vásquez"], "correos": ["hberaun@uncp.edu.pe"]},
+  {"pais": "Uruguay", "ciudad": "Montevideo", "lat": -34.9011, "lng": -56.1645, "revista": "Revista Fronteras", "institucion": "Universidad de la República, Uruguay", "web": "https://revistasfcs.edu.uy/index.php/ftas/about", "editores": ["Yoana Carballo", "Sandra Sande"], "correos": ["yoana.carballo@cienciassociales.edu.uy", "sandra.sande@cienciassociales.edu.uy"]}
  ],
  "asistentes": [
-  {"pais": "Argentina", "ciudad": "Córdoba", "lat": -31.4201, "lng": -64.1888, "revista": "Revista Conciencia Social", "institucion": "Universidad Nacional de Córdoba", "web": "https://revistas.unc.edu.ar/index.php/ConCienciaSocial/index"},
-  {"pais": "Brasil", "ciudad": "Vitória, Espírito Santo", "lat": -20.3155, "lng": -40.3128, "revista": "Argumentum", "institucion": "Universidade Federal do Espírito Santo", "web": "https://periodicos.ufes.br/argumentum/"},
-  {"pais": "Brasil", "ciudad": "São Paulo", "lat": -23.5505, "lng": -46.6333, "revista": "Serviço Social e Sociedade", "institucion": "Cortez Editora Ltda", "web": "https://www.scielo.br/j/sssoc/"},
-  {"pais": "Brasil", "ciudad": "Montes Claros, Minas Gerais", "lat": -16.735, "lng": -43.8617, "revista": "Revista Serviço Social em Perspectiva - Revista do Curso de Serviço Social", "institucion": "Universidad Estatal de Montes Claros", "web": "https://www.periodicos.unimontes.br/index.php/sesoperspectiva/index"},
-  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Praia Vermelha", "institucion": "Universidad Federal de Río de Janeiro", "web": "https://praiavermelha.ess.ufrj.br/"},
-  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Temporalis", "institucion": "ASSOCIAÇÃO BRASILEIRA DE ENSINO E PESQUISA EM SERVIÇO SOCIAL - ABEPSS, BRASIL.", "web": "https://periodicos.ufes.br/temporalis"},
-  {"pais": "Brasil", "ciudad": "Juiz de Fora, Minas Gerais", "lat": -21.7642, "lng": -43.3496, "revista": "Revista Libertas", "institucion": "Universidade Federal de Juiz de Fora", "web": "https://periodicos.ufjf.br/index.php/libertas/index"},
-  {"pais": "Brasil", "ciudad": "Florianópolis, Santa Catarina", "lat": -27.5954, "lng": -48.548, "revista": "Revista Katálysis", "institucion": "Universidade Federal de Santa Catarina", "web": "https://periodicos.ufsc.br/index.php/katalysis/index"},
-  {"pais": "Brasil", "ciudad": "Fortaleza, Ceará", "lat": -3.7319, "lng": -38.5267, "revista": "CARTILLA: Trabalho Social com famílias negras, povos originários e comunidades tradicionais no Ceará.", "institucion": "Comitê de Combate ao Racismo do Conselho Regional de Serviço Social - 3ª Região", "web": "https://drive.google.com/file/d/1ap1paz1DB5WvM31OvcYmpJ1y-RG-oshU/view"},
-  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista O Social em Questão", "institucion": "Programa de Pós-graduação em Serviço Social do Departamento de Serviço Social da Pontifícia Universidade Católica do Rio de Janeiro (PUC-Rio)", "web": "https://www.maxwell.vrac.puc-rio.br/rev_OSQ.php"},
-  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista Propuestas Críticas en Trabajo Social", "institucion": "Universidad de Chile", "web": "https://revistapropuestascriticas.uchile.cl/"},
-  {"pais": "Chile", "ciudad": "Talca", "lat": -35.4264, "lng": -71.6554, "revista": "Revista Pensamiento y Acción Interdisciplinaria", "institucion": "Universidad Católica del Maule", "web": "https://revistapai.ucm.cl/"},
-  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Rumbos TS", "institucion": "Universidad Central, Chile", "web": "https://revistafacso.ucentral.cl/index.php/rumbos"},
-  {"pais": "Colombia", "ciudad": "Manizales, Caldas", "lat": 5.0703, "lng": -75.5138, "revista": "Revista Eleuthera", "institucion": "Universidad de Caldas", "web": "https://revistasojs.ucaldas.edu.co/index.php/eleuthera/index"},
-  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Trabajo Social", "institucion": "Universidad Nacional de Colombia", "web": "https://revistas.unal.edu.co/index.php/tsocial"},
-  {"pais": "Colombia", "ciudad": "Santiago de Cali, Valle del Cauca", "lat": 3.4516, "lng": -76.532, "revista": "Prospectiva. Revista de Trabajo Social e intervención social", "institucion": "Universidad del Valle", "web": "https://revistaprospectiva.univalle.edu.co/index.php/prospectiva/index"},
-  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Colombiana de Trabajo Social", "institucion": "CONETS", "web": "https://conetsco.org/"},
-  {"pais": "Colombia", "ciudad": "Medellín, Antioquia", "lat": 6.2442, "lng": -75.5812, "revista": "Revista de Trabajo Social", "institucion": "Universidad de Antioquia", "web": "https://revistas.udea.edu.co/index.php/revistraso"},
-  {"pais": "Ecuador", "ciudad": "Manta, Manabí", "lat": -0.9677, "lng": -80.7089, "revista": "Revista Científica y Arbitrada de Ciencias Sociales y Trabajo Social: Tejedora", "institucion": "Universidad Laica Eloy Alfaro De Manabi", "web": "https://publicacionescd.uleam.edu.ec/index.php/tejedora/"},
-  {"pais": "Uruguay", "ciudad": "Montevideo", "lat": -34.9011, "lng": -56.1645, "revista": "Revista Fronteras", "institucion": "Universidad de la República, Uruguay", "web": "https://revistasfcs.edu.uy/index.php/ftas/about"}
+  {"pais": "Argentina", "ciudad": "Córdoba", "lat": -31.4201, "lng": -64.1888, "revista": "Revista Conciencia Social", "institucion": "Universidad Nacional de Córdoba", "web": "https://revistas.unc.edu.ar/index.php/ConCienciaSocial/index", "editores": ["Marianela Grasso"], "correos": ["marianela.grasso@unc.edu.ar"]},
+  {"pais": "Brasil", "ciudad": "Vitória, Espírito Santo", "lat": -20.3155, "lng": -40.3128, "revista": "Argumentum", "institucion": "Universidade Federal do Espírito Santo", "web": "https://periodicos.ufes.br/argumentum/", "editores": ["Maria Lucia Teixeira Garcia"], "correos": ["lucia-garcia@uol.com.br"]},
+  {"pais": "Brasil", "ciudad": "São Paulo", "lat": -23.5505, "lng": -46.6333, "revista": "Serviço Social e Sociedade", "institucion": "Cortez Editora Ltda", "web": "https://www.scielo.br/j/sssoc/", "editores": ["Esther Luiza De Souza Lemos", "Luiduina de Oliveira e Silva"], "correos": ["estherlemos@gmail.com", "liduoliveira90@gmail.com"]},
+  {"pais": "Brasil", "ciudad": "Montes Claros, Minas Gerais", "lat": -16.735, "lng": -43.8617, "revista": "Revista Serviço Social em Perspectiva - Revista do Curso de Serviço Social", "institucion": "Universidad Estatal de Montes Claros", "web": "https://www.periodicos.unimontes.br/index.php/sesoperspectiva/index", "editores": ["Diego Tabosa Da Silva", "Geusiani Pereira Silva e Nascimento", "Noêmia de Fátima Silva Lopes"], "correos": ["tabosa.diego@unifesp.br", "geusiani.nascimento@unimontes.br", "nfslopes@yahoo.com.br"]},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Praia Vermelha", "institucion": "Universidad Federal de Río de Janeiro", "web": "https://praiavermelha.ess.ufrj.br/", "editores": ["Fábio Marinho", "Janete Leite"], "correos": ["f.marinho@ess.ufrj.br", "janetell@ess.ufrj.br"]},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista Temporalis", "institucion": "ASSOCIAÇÃO BRASILEIRA DE ENSINO E PESQUISA EM SERVIÇO SOCIAL - ABEPSS, BRASIL.", "web": "https://periodicos.ufes.br/temporalis", "editores": ["Ana Lole", "Aparecide Milanez"], "correos": ["analole@gmail.com", "aparecidemilanez@ufpi.edu.br"]},
+  {"pais": "Brasil", "ciudad": "Juiz de Fora, Minas Gerais", "lat": -21.7642, "lng": -43.3496, "revista": "Revista Libertas", "institucion": "Universidade Federal de Juiz de Fora", "web": "https://periodicos.ufjf.br/index.php/libertas/index", "editores": ["Alexandra Aparecida Leite Toffanetto Seabra Eiras"], "correos": ["alexandra.eiras@ufjf.br"]},
+  {"pais": "Brasil", "ciudad": "Florianópolis, Santa Catarina", "lat": -27.5954, "lng": -48.548, "revista": "Revista Katálysis", "institucion": "Universidade Federal de Santa Catarina", "web": "https://periodicos.ufsc.br/index.php/katalysis/index", "editores": ["Mailiz Garibotti Lusa", "Tania Regina kruger", "Michelly Wiese"], "correos": ["mailiz.lusa@ufsc.br", "tania.kruger@ufsc.br"]},
+  {"pais": "Brasil", "ciudad": "Fortaleza, Ceará", "lat": -3.7319, "lng": -38.5267, "revista": "CARTILLA: Trabalho Social com famílias negras, povos originários e comunidades tradicionais no Ceará.", "institucion": "Comitê de Combate ao Racismo do Conselho Regional de Serviço Social - 3ª Região", "web": "https://drive.google.com/file/d/1ap1paz1DB5WvM31OvcYmpJ1y-RG-oshU/view", "editores": ["Ana Paula Silveira de Morais Vasconcelos"], "correos": ["anapaulasilveirass@yahoo.com.br"]},
+  {"pais": "Brasil", "ciudad": "Rio de Janeiro", "lat": -22.9068, "lng": -43.1729, "revista": "Revista O Social em Questão", "institucion": "Programa de Pós-graduação em Serviço Social do Departamento de Serviço Social da Pontifícia Universidade Católica do Rio de Janeiro (PUC-Rio)", "web": "https://www.maxwell.vrac.puc-rio.br/rev_OSQ.php", "editores": ["Ana Lole"], "correos": ["analole@gmail.com"]},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Revista Propuestas Críticas en Trabajo Social", "institucion": "Universidad de Chile", "web": "https://revistapropuestascriticas.uchile.cl/", "editores": ["Javiera Cubillos Almendra"], "correos": ["javieracubillos@uchile.cl"]},
+  {"pais": "Chile", "ciudad": "Talca", "lat": -35.4264, "lng": -71.6554, "revista": "Revista Pensamiento y Acción Interdisciplinaria", "institucion": "Universidad Católica del Maule", "web": "https://revistapai.ucm.cl/", "editores": ["Camila Rasse"], "correos": ["crasse@ucm.cl"]},
+  {"pais": "Chile", "ciudad": "Santiago de Chile", "lat": -33.4489, "lng": -70.6693, "revista": "Rumbos TS", "institucion": "Universidad Central, Chile", "web": "https://revistafacso.ucentral.cl/index.php/rumbos", "editores": ["Rodrigo Alberto Ahumada Cabello"], "correos": ["Rodrigo.ahumada@ucentral.cl"]},
+  {"pais": "Colombia", "ciudad": "Manizales, Caldas", "lat": 5.0703, "lng": -75.5138, "revista": "Revista Eleuthera", "institucion": "Universidad de Caldas", "web": "https://revistasojs.ucaldas.edu.co/index.php/eleuthera/index", "editores": ["Sergio Andrés Quintero Londoño"], "correos": ["eleuthera@ucaldas.edu.co", "sergio.quintero@ucaldas.edu.co"]},
+  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Trabajo Social", "institucion": "Universidad Nacional de Colombia", "web": "https://revistas.unal.edu.co/index.php/tsocial", "editores": ["Maira Judith Contreras Santos"], "correos": ["mjcontrerass@unal.edu.co", "revtrasoc_bog@unal.edu.co"]},
+  {"pais": "Colombia", "ciudad": "Santiago de Cali, Valle del Cauca", "lat": 3.4516, "lng": -76.532, "revista": "Prospectiva. Revista de Trabajo Social e intervención social", "institucion": "Universidad del Valle", "web": "https://revistaprospectiva.univalle.edu.co/index.php/prospectiva/index", "editores": ["Solanyer Lopez Alvarez", "Paula Velásquez"], "correos": ["solanyer.lopez@correounivalle.edu.co", "paula.velasquez@correounivalle.edu.co"]},
+  {"pais": "Colombia", "ciudad": "Bogotá", "lat": 4.711, "lng": -74.0721, "revista": "Revista Colombiana de Trabajo Social", "institucion": "CONETS", "web": "https://conetsco.org/", "editores": ["Maira Judith Contreras Santos", "Liliana Marcela Cañas Baquero", "Iovan Parra Cuestas"], "correos": ["mjcontrerass@unal.edu.co", "conetscol2020@gmail.com", "iovanparra@gmail.com"]},
+  {"pais": "Colombia", "ciudad": "Medellín, Antioquia", "lat": 6.2442, "lng": -75.5812, "revista": "Revista de Trabajo Social", "institucion": "Universidad de Antioquia", "web": "https://revistas.udea.edu.co/index.php/revistraso", "editores": ["José Roberto Álvarez Munera", "Hugo Villa"], "correos": ["roberto.alvarez@udea.edu.co", "alexander.villa@udea.edu.co", "revistatrabajosocial@udea.edu.co"]},
+  {"pais": "Ecuador", "ciudad": "Manta, Manabí", "lat": -0.9677, "lng": -80.7089, "revista": "Revista Científica y Arbitrada de Ciencias Sociales y Trabajo Social: Tejedora", "institucion": "Universidad Laica Eloy Alfaro De Manabi", "web": "https://publicacionescd.uleam.edu.ec/index.php/tejedora/", "editores": ["Adriana Arangundi", "Carmita Álvarez Santana"], "correos": ["rcacstb.tejedora@uleam.edu.ec", "Carmita.alvarez@uleam.edu.ec", "Carmitaalvarez1@yahoo.es"]},
+  {"pais": "Uruguay", "ciudad": "Montevideo", "lat": -34.9011, "lng": -56.1645, "revista": "Revista Fronteras", "institucion": "Universidad de la República, Uruguay", "web": "https://revistasfcs.edu.uy/index.php/ftas/about", "editores": ["Yoana Carballo", "Sandra Sande"], "correos": ["yoana.carballo@cienciassociales.edu.uy", "sandra.sande@cienciassociales.edu.uy"]}
  ]
 };
 // Mapa base (fronteras) desde world-atlas
@@ -303,13 +311,22 @@ const COUNTRY_EN = { "argentina":"Argentina", "bolivia":"Bolivia", "brasil":"Bra
 const clean = s => String(s || "").replace(/\s+/g, " ").trim();
 const key = s => clean(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
+// "1. Nombre 2. Nombre" o nombres en líneas separadas → lista de nombres
+function splitNames(raw) {
+  return String(raw || "").split(/\n|\s*\b\d+\.\s+/).map(s => s.replace(/\s+/g, " ").trim().replace(/^\.+|\.+$/g, ""))
+    .filter(s => s && !/^sin informaci/i.test(s))
+    .map(s => s === s.toUpperCase() ? s.toLowerCase().replace(/(^|\s)\S/g, c => c.toUpperCase()) : s);
+}
+
 function parseSheet(text) {
   const rows = d3.csvParseRows(text);
   const head = (rows.shift() || []).map(key);
   const col = (re, fb) => { const i = head.findIndex(h => re.test(h)); return i >= 0 ? i : fb; };
-  const cP = col(/^pais/, 0), cC = col(/ciudad|estado|provincia/, 1), cR = col(/revista/, 2), cI = col(/institucion/, 3), cW = col(/web|pagina|url/, 4);
+  const cP = col(/^pais/, 0), cC = col(/ciudad|estado|provincia/, 1), cR = col(/revista/, 2), cI = col(/institucion/, 3), cW = col(/web|pagina|url/, 4),
+    cE = col(/editor|representante/, 5), cM = col(/correo|e-?mail/, 6);
   return rows.map(r => ({
     pais: clean(r[cP]), ciudadRaw: clean(r[cC]), revista: clean(r[cR]), institucion: clean(r[cI]),
+    editores: splitNames(r[cE]), correos: [...new Set(String(r[cM] || "").match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g) || [])],
     web: clean(r[cW]).split(/\s+/)[0].replace(/[?&](fbclid|srsltid)=[^&]*/g, "")
   })).filter(r => r.pais && r.revista).map(r => {
     r.pais = r.pais.charAt(0).toUpperCase() + r.pais.slice(1);
@@ -404,7 +421,7 @@ const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 function matches(r) {
   const q = norm(state.q.trim());
-  return !q || norm(r.revista + " " + r.institucion + " " + r.ciudad + " " + r.pais).includes(q);
+  return !q || norm([r.revista, r.institucion, r.ciudad, r.pais, ...(r.editores || [])].join(" ")).includes(q);
 }
 function visible() {
   return rows().filter(r => matches(r) && (!state.pais || r.pais === state.pais) && (!state.ciudad || r.ciudad === state.ciudad));
@@ -522,6 +539,15 @@ function renderSide() {
   document.querySelectorAll("#plist button").forEach(b => b.onclick = () => selectPais(state.pais === b.dataset.p ? null : b.dataset.p));
 }
 
+function contact(r) {
+  const ed = r.editores || [], co = r.correos || [];
+  if (!ed.length && !co.length) return "";
+  return `<div class="contact">` +
+    (ed.length ? `<p class="ed"><span class="k">${ed.length > 1 ? "Editores" : "Editor/a"}</span>${ed.map(esc).join(" · ")}</p>` : "") +
+    co.map(m => `<p class="mail"><a href="mailto:${esc(m)}">${esc(m)}</a><button class="copy" data-m="${esc(m)}" aria-label="Copiar ${esc(m)}">Copiar</button></p>`).join("") +
+    `</div>`;
+}
+
 function renderDetail() {
   const list = visible();
   const lab = document.getElementById("dlabel"), title = document.getElementById("dtitle"), sub = document.getElementById("dsub");
@@ -539,8 +565,16 @@ function renderDetail() {
       `<div class="item">
         ${r.web ? `<a class="t" href="${esc(r.web)}" target="_blank" rel="noopener">${esc(r.revista)}</a>` : `<span class="t">${esc(r.revista)}</span>`}
         <span class="i">${esc(r.institucion)}</span>
+        ${contact(r)}
         ${state.ciudad ? "" : `<button class="c" data-c="${esc(r.ciudad)}" data-p="${esc(r.pais)}">${esc(r.ciudad)}</button>`}
       </div>`).join("") + `</div>`).join("");
+  el.querySelectorAll(".copy").forEach(b => b.onclick = () => {
+    const done = () => { b.textContent = "Copiado"; setTimeout(() => b.textContent = "Copiar", 1500); };
+    (navigator.clipboard ? navigator.clipboard.writeText(b.dataset.m) : Promise.reject()).then(done).catch(() => {
+      const r = document.createRange(); r.selectNodeContents(b.previousElementSibling);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    });
+  });
   el.querySelectorAll(".c").forEach(b => b.onclick = () => {
     state.pais = b.dataset.p; state.ciudad = b.dataset.c; update();
     zoomTo(rows().filter(r => r.pais === b.dataset.p && r.ciudad === b.dataset.c));
